@@ -128,6 +128,14 @@ button {
   padding: 18px;
 }
 
+.install-panel {
+  text-align: center;
+}
+
+.install-button {
+  margin-top: 14px;
+}
+
 .tiny-note {
   font-size: 0.92rem;
   color: #6b7280;

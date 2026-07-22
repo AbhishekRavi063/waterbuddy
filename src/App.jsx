@@ -5,7 +5,7 @@ const amritaImageUrl = "/icons/amrita.jpg";
 const goals = [4, 6, 8];
 const storageKey = "water-buddy-state";
 const visitStorageKey = "water-buddy-visit-count";
-const testIntervalMs = 5 * 60 * 1000;
+const reminderIntervalMs = 2 * 60 * 60 * 1000;
 const heroMessages = [
   {
     eyebrow: "Made By Abhishek For Amrita",
@@ -84,6 +84,8 @@ export default function App() {
   const [isTestScheduleRunning, setIsTestScheduleRunning] = useState(false);
   const [nextTestAt, setNextTestAt] = useState(null);
   const [visitCount, setVisitCount] = useState(0);
+  const [installPromptEvent, setInstallPromptEvent] = useState(null);
+  const [installHint, setInstallHint] = useState("");
 
   const waterCount = useMemo(
     () => drinkLog.filter((entry) => isToday(entry.at)).length,
@@ -115,6 +117,18 @@ export default function App() {
     } catch {
       window.localStorage.removeItem(storageKey);
     }
+  }, []);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPromptEvent(event);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
   }, []);
 
   useEffect(() => {
@@ -233,14 +247,14 @@ export default function App() {
       const nextStep = reminderStep + 1;
       await showFunnyNotification(nextStep, " Test mode.");
       setReminderStep(nextStep);
-      setNextTestAt(new Date(Date.now() + testIntervalMs).toLocaleTimeString());
+      setNextTestAt(new Date(Date.now() + reminderIntervalMs).toLocaleTimeString());
     };
 
-    setNextTestAt(new Date(Date.now() + testIntervalMs).toLocaleTimeString());
+    setNextTestAt(new Date(Date.now() + reminderIntervalMs).toLocaleTimeString());
     timeoutId = window.setTimeout(() => {
       runScheduledNotification();
-      intervalId = window.setInterval(runScheduledNotification, testIntervalMs);
-    }, testIntervalMs);
+      intervalId = window.setInterval(runScheduledNotification, reminderIntervalMs);
+    }, reminderIntervalMs);
 
     return () => {
       window.clearTimeout(timeoutId);
@@ -262,12 +276,32 @@ export default function App() {
       const next = !current;
       if (!next) {
         setNextTestAt(null);
-        setNotificationStatus("5-minute test stopped.");
+        setNotificationStatus("2-hour reminder cycle stopped.");
       } else {
-        setNotificationStatus("5-minute test started.");
+        setNotificationStatus("2-hour reminder cycle started.");
       }
       return next;
     });
+  };
+
+  const handleInstallApp = async () => {
+    if (installPromptEvent) {
+      await installPromptEvent.prompt();
+      const choice = await installPromptEvent.userChoice;
+      setInstallHint(
+        choice.outcome === "accepted"
+          ? "App install started."
+          : "Install dismissed."
+      );
+      setInstallPromptEvent(null);
+      return;
+    }
+
+    setInstallHint(
+      /iphone|ipad|ipod/i.test(window.navigator.userAgent)
+        ? "Open in Safari, tap Share, then Add to Home Screen."
+        : "Open browser menu and choose Install app or Add to Home Screen."
+    );
   };
 
   return (
@@ -369,13 +403,22 @@ export default function App() {
             Enable notifications
           </button>
           <button type="button" className="secondary-button" onClick={toggleTestSchedule}>
-            {isTestScheduleRunning ? "Stop 5-minute test" : "Start 5-minute test"}
+            {isTestScheduleRunning ? "Stop 2-hour reminders" : "Start 2-hour reminders"}
           </button>
         </div>
         {nextTestAt ? (
-          <p className="tiny-note">Next test notification: {nextTestAt}</p>
+          <p className="tiny-note">Next reminder: {nextTestAt}</p>
         ) : null}
         {notificationStatus ? <p className="tiny-note">{notificationStatus}</p> : null}
+      </section>
+
+      <section className="panel install-panel">
+        <h3>Download App</h3>
+        <p>Install this website like an app on the phone.</p>
+        <button type="button" className="primary-button install-button" onClick={handleInstallApp}>
+          Download app
+        </button>
+        {installHint ? <p className="tiny-note">{installHint}</p> : null}
       </section>
     </main>
   );
