@@ -4,7 +4,42 @@ import { buildNotificationPayload } from "../data/dialogues";
 const amritaImageUrl = "/icons/amrita.jpg";
 const goals = [4, 6, 8];
 const storageKey = "water-buddy-state";
+const visitStorageKey = "water-buddy-visit-count";
 const testIntervalMs = 5 * 60 * 1000;
+const heroMessages = [
+  {
+    eyebrow: "Made By Abhishek For Amritha",
+    title: "This app is for this girl because she does not drink water.",
+    subtitle:
+      "Made by Abhishek for Amritha. Cute girl, low hydration, big problem. So this app is here to remind her properly.",
+    calloutTitle: "Amritha",
+    calloutText: "Beautiful face. Very suspicious water habits.",
+  },
+  {
+    eyebrow: "Abhishek vs Dehydration",
+    title: "Special app for the girl who treats water like an optional side quest.",
+    subtitle:
+      "Abhishek made this for Amritha because apparently remembering water is harder than being cute all day.",
+    calloutTitle: "Amritha spotted",
+    calloutText: "Looks innocent. Hydration record says otherwise.",
+  },
+  {
+    eyebrow: "Personal Case File",
+    title: "This whole app exists because one girl keeps forgetting to drink water.",
+    subtitle:
+      "Made by Abhishek for Amritha, whose talents include being adorable and ignoring the water bottle for dramatic effect.",
+    calloutTitle: "Primary suspect",
+    calloutText: "Charged with charm, mischief, and chronic under-hydration.",
+  },
+  {
+    eyebrow: "Emergency Romance Department",
+    title: "Pretty girl detected. Water discipline not detected.",
+    subtitle:
+      "Abhishek built this for Amritha so someone can lovingly interrupt the nonsense and say: drink water first.",
+    calloutTitle: "Amritha Nair",
+    calloutText: "Very photogenic. Very forgetful with hydration.",
+  },
+];
 const hourlyBuckets = [
   { key: "6-9", label: "6-9", start: 6, end: 9 },
   { key: "9-12", label: "9-12", start: 9, end: 12 },
@@ -48,11 +83,13 @@ export default function App() {
   const [notificationStatus, setNotificationStatus] = useState("");
   const [isTestScheduleRunning, setIsTestScheduleRunning] = useState(false);
   const [nextTestAt, setNextTestAt] = useState(null);
+  const [visitCount, setVisitCount] = useState(0);
 
   const waterCount = useMemo(
     () => drinkLog.filter((entry) => isToday(entry.at)).length,
     [drinkLog]
   );
+  const heroMessage = heroMessages[visitCount % heroMessages.length];
   const goal = goals[goalIndex];
   const progress = Math.min(waterCount / goal, 1);
   const frequencyData = useMemo(() => buildHourlyFrequency(drinkLog), [drinkLog]);
@@ -60,6 +97,11 @@ export default function App() {
   const recentDrinks = useMemo(() => drinkLog.slice(-6).reverse(), [drinkLog]);
 
   useEffect(() => {
+    const rawVisits = window.localStorage.getItem(visitStorageKey);
+    const nextVisitCount = Number.parseInt(rawVisits ?? "0", 10) || 0;
+    setVisitCount(nextVisitCount);
+    window.localStorage.setItem(visitStorageKey, String(nextVisitCount + 1));
+
     const rawState = window.localStorage.getItem(storageKey);
     if (!rawState) {
       return;
@@ -231,18 +273,15 @@ export default function App() {
   return (
     <main className="app-shell">
       <section className="hero-card">
-        <p className="eyebrow">Made By Abhishek For Amritha</p>
-        <h1>This app is for this girl because she does not drink water.</h1>
-        <p className="subtitle">
-          Made by Abhishek for Amritha. Cute girl, low hydration, big problem.
-          So this app is here to remind her properly.
-        </p>
+        <p className="eyebrow">{heroMessage.eyebrow}</p>
+        <h1>{heroMessage.title}</h1>
+        <p className="subtitle">{heroMessage.subtitle}</p>
 
         <div className="amrita-card">
           <img className="amrita-photo" src={amritaImageUrl} alt="Amrita Nair" />
           <div className="amrita-callout">
-            <strong>Amritha</strong>
-            <span>Beautiful face. Very suspicious water habits.</span>
+            <strong>{heroMessage.calloutTitle}</strong>
+            <span>{heroMessage.calloutText}</span>
           </div>
         </div>
 
