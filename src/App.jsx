@@ -22,6 +22,7 @@ const installSteps = [
   "Launch it from the home screen like an app.",
 ];
 const storageKey = "water-buddy-state";
+const testIntervalMs = 5 * 60 * 1000;
 const notificationSupport = {
   notifications: typeof window !== "undefined" && "Notification" in window,
   serviceWorker: typeof navigator !== "undefined" && "serviceWorker" in navigator,
@@ -55,6 +56,8 @@ export default function App() {
       ? "Enable permission to test funny mobile notifications."
       : "This browser does not support web notifications."
   );
+  const [isTestScheduleRunning, setIsTestScheduleRunning] = useState(false);
+  const [nextTestAt, setNextTestAt] = useState(null);
 
   useEffect(() => {
     const rawState = window.localStorage.getItem(storageKey);
@@ -110,6 +113,48 @@ export default function App() {
         setNotificationStatus("Service worker is not ready yet.");
       });
   }, []);
+
+  useEffect(() => {
+    if (!isTestScheduleRunning) {
+      return undefined;
+    }
+
+    let timeoutId;
+    let intervalId;
+
+    const runScheduledNotification = async () => {
+      const payload = buildNotificationPayload(language, vibe, reminderStep + 1);
+      const registration = await navigator.serviceWorker.ready;
+
+      await registration.showNotification(payload.title, {
+        body: `${payload.body} Test mode: 5-minute reminder.`,
+        icon: "/icons/icon-192.svg",
+        badge: "/icons/icon-192.svg",
+        tag: `${payload.tag}-scheduled`,
+        data: payload.data,
+      });
+
+      const nextStep = reminderStep + 1;
+      const nextMessage = createReminder(nextStep, language, vibe);
+      setReminderStep(nextStep);
+      setMessages((current) => [nextMessage, ...current].slice(0, 6));
+      setNextTestAt(new Date(Date.now() + testIntervalMs).toLocaleTimeString());
+      setNotificationStatus("Funny test notification delivered on the 5-minute test schedule.");
+    };
+
+    setNextTestAt(new Date(Date.now() + testIntervalMs).toLocaleTimeString());
+    timeoutId = window.setTimeout(() => {
+      runScheduledNotification();
+      intervalId = window.setInterval(runScheduledNotification, testIntervalMs);
+    }, testIntervalMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      if (intervalId) {
+        window.clearInterval(intervalId);
+      }
+    };
+  }, [isTestScheduleRunning, language, reminderStep, vibe]);
 
   const goal = goals[goalIndex];
   const progress = Math.min(waterCount / goal, 1);
@@ -204,6 +249,24 @@ export default function App() {
     setNotificationStatus("Funny test notification sent to the device notification tray.");
   };
 
+  const toggleTestSchedule = () => {
+    if (notificationPermission !== "granted") {
+      setNotificationStatus("Enable notifications first, then start the 5-minute test schedule.");
+      return;
+    }
+
+    setIsTestScheduleRunning((current) => {
+      const next = !current;
+      if (!next) {
+        setNextTestAt(null);
+        setNotificationStatus("5-minute test schedule stopped.");
+      } else {
+        setNotificationStatus("5-minute test schedule started. Keep the app installed/open for testing.");
+      }
+      return next;
+    });
+  };
+
   return (
     <main className="app-shell">
       <section className="hero-card">
@@ -265,7 +328,13 @@ export default function App() {
           <button type="button" className="secondary-button" onClick={sendTestNotification}>
             Send funny test notification
           </button>
+          <button type="button" className="secondary-button" onClick={toggleTestSchedule}>
+            {isTestScheduleRunning ? "Stop 5-minute test mode" : "Start 5-minute test mode"}
+          </button>
         </div>
+        {nextTestAt ? (
+          <p className="tiny-note">Next 5-minute test notification: {nextTestAt}</p>
+        ) : null}
         <p className="tiny-note">{notificationStatus}</p>
       </section>
 
