@@ -1,12 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   buildNotificationPayload,
-  characters,
   getPrompt,
   getReply,
-  languages,
   pickCharacter,
-  vibes,
 } from "../data/dialogues";
 
 const actionOptions = [
@@ -18,11 +15,6 @@ const amritaImageUrl =
   "https://radviiokxmrzwzwxxssd.supabase.co/storage/v1/object/sign/static/amritha.jpeg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMGEzOTI2Mi1lM2YyLTQyMzEtYWI1Ny01M2YwODU5NTc4YWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzdGF0aWMvYW1yaXRoYS5qcGVnIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NDcxMDAxMiwiZXhwIjoxODE2MjQ2MDEyfQ.bfaJVDQ4z_xLMTWnlzjB3Ys4JngeDwOV-KaUGFWyYi0";
 
 const goals = [4, 6, 8];
-const installSteps = [
-  "Open this link in Safari on iPhone or Chrome on Android.",
-  "Tap Share or browser menu, then Add to Home Screen.",
-  "Launch it from the home screen like an app.",
-];
 const storageKey = "water-buddy-state";
 const testIntervalMs = 5 * 60 * 1000;
 const hourlyBuckets = [
@@ -39,15 +31,15 @@ const notificationSupport = {
   pushManager: typeof window !== "undefined" && "PushManager" in window,
 };
 
-function createReminder(step, language, vibe) {
+function createReminder(step) {
   const character = pickCharacter(step);
   return {
-    id: `msg-${step}-${language}-${vibe}`,
+    id: `msg-${step}`,
     speaker: character.name,
     avatar: character.avatar,
     accent: character.accent,
     colors: character.colors,
-    body: getPrompt(language, vibe, step),
+    body: getPrompt(step),
   };
 }
 
@@ -72,11 +64,9 @@ function buildHourlyFrequency(drinkLog) {
 }
 
 export default function App() {
-  const [language, setLanguage] = useState("english");
-  const [vibe, setVibe] = useState("cute");
   const [goalIndex, setGoalIndex] = useState(1);
   const [reminderStep, setReminderStep] = useState(0);
-  const [messages, setMessages] = useState([createReminder(0, "english", "cute")]);
+  const [messages, setMessages] = useState([createReminder(0)]);
   const [drinkLog, setDrinkLog] = useState([]);
   const [notificationPermission, setNotificationPermission] = useState(
     notificationSupport.notifications ? Notification.permission : "unsupported"
@@ -95,10 +85,7 @@ export default function App() {
   );
   const goal = goals[goalIndex];
   const progress = Math.min(waterCount / goal, 1);
-  const latestCharacter = useMemo(
-    () => characters[reminderStep % characters.length],
-    [reminderStep]
-  );
+  const latestCharacter = useMemo(() => pickCharacter(reminderStep), [reminderStep]);
   const frequencyData = useMemo(() => buildHourlyFrequency(drinkLog), [drinkLog]);
   const maxFrequency = Math.max(...frequencyData.map((item) => item.count), 1);
   const recentDrinks = useMemo(() => drinkLog.slice(-6).reverse(), [drinkLog]);
@@ -111,21 +98,13 @@ export default function App() {
 
     try {
       const saved = JSON.parse(rawState);
-      setLanguage(saved.language ?? "english");
-      setVibe(saved.vibe ?? "cute");
       setGoalIndex(saved.goalIndex ?? 1);
       setReminderStep(saved.reminderStep ?? 0);
       setDrinkLog(saved.drinkLog ?? []);
       setMessages(
         saved.messages?.length
           ? saved.messages
-          : [
-              createReminder(
-                saved.reminderStep ?? 0,
-                saved.language ?? "english",
-                saved.vibe ?? "cute"
-              ),
-            ]
+          : [createReminder(saved.reminderStep ?? 0)]
       );
     } catch {
       window.localStorage.removeItem(storageKey);
@@ -136,15 +115,13 @@ export default function App() {
     window.localStorage.setItem(
       storageKey,
       JSON.stringify({
-        language,
-        vibe,
         goalIndex,
         reminderStep,
         messages,
         drinkLog,
       })
     );
-  }, [drinkLog, goalIndex, language, messages, reminderStep, vibe]);
+  }, [drinkLog, goalIndex, messages, reminderStep]);
 
   const recordDrink = (source) => {
     const entry = {
@@ -207,14 +184,14 @@ export default function App() {
     };
   }, []);
 
-  const queueReminder = (step, nextLanguage = language, nextVibe = vibe) => {
-    const reminder = createReminder(step, nextLanguage, nextVibe);
+  const queueReminder = (step) => {
+    const reminder = createReminder(step);
     setReminderStep(step);
     setMessages((current) => [reminder, ...current].slice(0, 6));
   };
 
   const showFunnyNotification = async (step, suffix = "") => {
-    const payload = buildNotificationPayload(language, vibe, step);
+    const payload = buildNotificationPayload(step);
     const registration = await navigator.serviceWorker.ready;
 
     await registration.showNotification(payload.title, {
@@ -258,7 +235,7 @@ export default function App() {
         window.clearInterval(intervalId);
       }
     };
-  }, [isTestScheduleRunning, language, reminderStep, vibe]);
+  }, [isTestScheduleRunning, reminderStep]);
 
   const triggerReminder = () => {
     queueReminder(reminderStep + 1);
@@ -280,22 +257,6 @@ export default function App() {
     };
 
     setMessages((current) => [reply, ...current].slice(0, 6));
-  };
-
-  const refreshLanguage = (nextLanguage) => {
-    setLanguage(nextLanguage);
-    setMessages((current) => [
-      createReminder(reminderStep, nextLanguage, vibe),
-      ...current.slice(1),
-    ]);
-  };
-
-  const refreshVibe = (nextVibe) => {
-    setVibe(nextVibe);
-    setMessages((current) => [
-      createReminder(reminderStep, language, nextVibe),
-      ...current.slice(1),
-    ]);
   };
 
   const enableNotifications = async () => {
@@ -357,50 +318,28 @@ export default function App() {
     <main className="app-shell">
       <section className="hero-card">
         <p className="eyebrow">Made By Abhishek For Amrita Nair</p>
-        <h1>A funny water app for the girl who never drinks enough water.</h1>
+        <h1>This is just for Amrita.</h1>
         <p className="subtitle">
-          Abhishek made this for Amrita Nair because she keeps forgetting to
-          drink water. So now dramatic animals, cinema-level reminders, and
-          silly chats are here to lovingly bully her into staying hydrated.
+          She is sweet, funny, and somehow still forgets to drink water. So this
+          app exists to remind her properly.
         </p>
 
         <div className="amrita-card">
           <img className="amrita-photo" src={amritaImageUrl} alt="Amrita Nair" />
           <div className="amrita-callout">
-            <strong>Target acquired: Amrita Nair.</strong>
-            <span>Official charge sheet: cute, funny, and criminally under-hydrated.</span>
+            <strong>Amrita Nair</strong>
+            <span>Certified cutie. Uncertified water drinker.</span>
           </div>
         </div>
 
-        <div
-          className="character-spotlight"
-          style={{ "--spotlight": latestCharacter.colors[0] }}
-        >
-          <div className="character-emoji">{latestCharacter.avatar}</div>
-          <div>
-            <h2>{latestCharacter.name}</h2>
-            <p>{latestCharacter.accent}</p>
-          </div>
+        <div className="hero-actions">
+          <button type="button" className="primary-button" onClick={() => handleAction("success")}>
+            I drank water
+          </button>
+          <button type="button" className="secondary-button" onClick={triggerReminder}>
+            Remind me
+          </button>
         </div>
-      </section>
-
-      <section className="panel install-panel">
-        <div>
-          <h3>Install On Phone</h3>
-          <p>
-            Open it in Safari on iPhone or Chrome on Android, add it to the home
-            screen, and use it like a real app for free.
-          </p>
-        </div>
-        <ol className="install-steps">
-          {installSteps.map((step) => (
-            <li key={step}>{step}</li>
-          ))}
-        </ol>
-        <p className="tiny-note">
-          Notifications include an `I drank` action, so Amrita can log water
-          straight from the notification itself.
-        </p>
       </section>
 
       <section className="panel">
@@ -430,36 +369,6 @@ export default function App() {
           <p className="tiny-note">Next 5-minute test notification: {nextTestAt}</p>
         ) : null}
         <p className="tiny-note">{notificationStatus}</p>
-      </section>
-
-      <section className="panel">
-        <h3>Language</h3>
-        <div className="pill-row">
-          {languages.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`pill ${item.id === language ? "active" : ""}`}
-              onClick={() => refreshLanguage(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        <h3>Reminder Mood</h3>
-        <div className="pill-row">
-          {vibes.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`pill ${item.id === vibe ? "active" : ""}`}
-              onClick={() => refreshVibe(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
       </section>
 
       <section className="stats-grid">

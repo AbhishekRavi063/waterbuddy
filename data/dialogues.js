@@ -1,15 +1,3 @@
-export const languages = [
-  { id: "english", label: "English" },
-  { id: "hindi", label: "Hindi" },
-  { id: "malayalam", label: "Malayalam" },
-];
-
-export const vibes = [
-  { id: "cute", label: "Cute" },
-  { id: "filmy", label: "Filmy" },
-  { id: "savage", label: "Savage" },
-];
-
 export const characters = [
   {
     id: "elephant",
@@ -48,103 +36,57 @@ export const characters = [
   },
 ];
 
-const dialogueBank = {
-  english: {
-    cute: [
-      "Tiny hydration alert. Your body sent me a very polite complaint.",
-      "Drink water and I will officially call you a responsible legend.",
-      "This is your adorable reminder that lips, skin, and brain all want water.",
-    ],
-    filmy: [
-      "Interval block is over. Hero entry now: drink that water.",
-      "No superstar glows on zero hydration. Respect the bottle.",
-      "The audience is waiting for your hydration comeback scene.",
-    ],
-    savage: [
-      "Your water bottle has seen more neglect than a side character.",
-      "You scroll with dedication. Try that energy on drinking water.",
-      "At this point your bottle and I both deserve answers.",
-    ],
-  },
-  hindi: {
-    cute: [
-      "Paani pee lo, warna main phir se pyar se disturb karunga.",
-      "Hydration ka message aaya hai. Ignore mat karo, dost.",
-      "Tumhara body bol raha hai: thoda sa paani bhej do please.",
-    ],
-    filmy: [
-      "Hero entry tabhi complete hogi jab bottle khatam hogi.",
-      "Yeh hydration ka scene hai, background music khud imagine karo.",
-      "Pehle paani, phir full main-character attitude.",
-    ],
-    savage: [
-      "Phone charge karte ho, khud ko kab charge karoge? Paani piyo.",
-      "Itna attitude theek hai, dehydration nahi.",
-      "Bottle wahan rakhi hai sirf decoration ke liye kya?",
-    ],
-  },
-  malayalam: {
-    cute: [
-      "Vellam kudikkan time ayi. Njan nalla reethiyil parayunnu.",
-      "Kochu reminder: bodykku kurachu water venam ketto.",
-      "Nee super aanu, pakshe hydrate cheythal kooduthal super.",
-    ],
-    filmy: [
-      "Ithu oru mass scene aanu. Bottle eduthu vellam kudikyu.",
-      "Heroine glowinu munpe hydration venam.",
-      "Climaxinu munpe oru glass vellam mandatory aanu.",
-    ],
-    savage: [
-      "Bottle ninne nokki karayunnu. Oru sip enkilum kudikyu.",
-      "Scroll cheyyan energy undu, vellam kudikkan illayo?",
-      "Dehydrationine ithra support venda. Vellam kudikyu.",
-    ],
-  },
-};
+const reminderLines = [
+  "Amrita, paani piyo. Ninne nokki bottle already heartbreak mode-il aanu.",
+  "Hello beautiful, glow venamenkil first hydration venam.",
+  "Tumhari smile blockbuster hai, but hydration interval missing hai.",
+  "Vellam kudicho mole? Illengil njan full villain entry edukum.",
+  "Main hero background music ready aanu. Nee just oru sip edukkuka.",
+  "Athu sari, but water kudikkathe cute mathram aayal mathiyo?",
+  "Paani pee lo jaan, warna lipsum brainum strike cheyyum.",
+  "Nee romba pretty aanu, pakshe water bottle-ne ignore cheyyunnathu toxic aanu.",
+  "Bollywood heroine pole shine cheyyan? First drink water, madam.",
+  "Ente ponnu, vellam kudikkan ithra attitude venda ketto.",
+  "Amrita baby, hydration illathe main character arc weak aakum.",
+  "Oru glass vellam kudichaal mathi, pinne full flirt mode continue cheyyam.",
+  "Paani ke bina romance bhi dry ho jata hai. Sip now.",
+  "Ithu love letter alla, hydration warning aanu with feelings.",
+  "Nee vellam kudichal njan thanne whistle adikkum. Mass scene.",
+];
 
 const replies = {
   success: [
-    "Legend behavior. I’m updating the hydration committee.",
-    "Excellent. Your organs send regards.",
-    "Beautiful. Even the avatar is emotionally moved.",
+    "Aha, now that is heroine behavior.",
+    "Shabash. Komban and kidneys both are impressed.",
+    "Mass. Ippol thanne glow upgrade ayi.",
+    "Good girl. Hydration team sends flying kisses.",
   ],
   snooze: [
-    "Fine. I’ll allow a dramatic delay.",
-    "Two minutes. No Oscar-level excuses after that.",
-    "Snoozed, but I’m judging with love.",
+    "Two minutes only. Ithinu shesham no more cinema excuses.",
+    "Fine, but this delay has strong side-character energy.",
+    "Snooze accepted. Romance okay, dehydration not okay.",
   ],
   chaos: [
-    "Chai is not water, but your confidence is inspiring.",
-    "Suspicious answer. I’ll be back with louder energy.",
-    "I respect the joke. The kidneys do not.",
+    "Chai cute aanu, but still not water, madam.",
+    "Flirting with tea while ignoring water? Dangerous storyline.",
+    "Comedy super, but bottle still waiting for commitment.",
   ],
 };
 
-const notificationTitles = {
-  english: [
-    "Hydration drama just dropped",
-    "Urgent message from your water bottle",
-    "Main character, please sip now",
-  ],
-  hindi: [
-    "Hydration ka breaking scene",
-    "Bottle ne complaint file kar di",
-    "Hero entry se pehle paani",
-  ],
-  malayalam: [
-    "Hydration alert vannu ketto",
-    "Bottle ninnodu samsarikkunnu",
-    "Mass entrykku munpe vellam",
-  ],
-};
+const notificationTitles = [
+  "Amrita, hydration scene ready",
+  "Breaking news: cute girl forgot water again",
+  "Main character alert: sip immediately",
+  "Vellam kudikkan romantic reminder",
+  "Bottle says it misses you",
+];
 
 export function pickCharacter(index) {
   return characters[index % characters.length];
 }
 
-export function getPrompt(language, vibe, index) {
-  const lines = dialogueBank[language]?.[vibe] ?? dialogueBank.english.cute;
-  return lines[index % lines.length];
+export function getPrompt(index) {
+  return reminderLines[index % reminderLines.length];
 }
 
 export function getReply(type, index) {
@@ -152,18 +94,14 @@ export function getReply(type, index) {
   return lines[index % lines.length];
 }
 
-export function buildNotificationPayload(language, vibe, index) {
+export function buildNotificationPayload(index) {
   const character = pickCharacter(index);
-  const titleLines = notificationTitles[language] ?? notificationTitles.english;
-
   return {
-    title: `${character.avatar} ${titleLines[index % titleLines.length]}`,
-    body: getPrompt(language, vibe, index),
-    tag: `water-buddy-${character.id}-${vibe}`,
+    title: `${character.avatar} ${notificationTitles[index % notificationTitles.length]}`,
+    body: getPrompt(index),
+    tag: `water-buddy-${character.id}`,
     data: {
       characterId: character.id,
-      language,
-      vibe,
       url: "/",
     },
   };
