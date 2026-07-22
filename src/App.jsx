@@ -14,6 +14,8 @@ const actionOptions = [
   { id: "snooze", label: "2 more mins" },
   { id: "chaos", label: "Bring chai instead" },
 ];
+const amritaImageUrl =
+  "https://radviiokxmrzwzwxxssd.supabase.co/storage/v1/object/sign/static/amritha.jpeg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMGEzOTI2Mi1lM2YyLTQyMzEtYWI1Ny01M2YwODU5NTc4YWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzdGF0aWMvYW1yaXRoYS5qcGVnIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NDcxMDAxMiwiZXhwIjoxODE2MjQ2MDEyfQ.bfaJVDQ4z_xLMTWnlzjB3Ys4JngeDwOV-KaUGFWyYi0";
 
 const goals = [4, 6, 8];
 const installSteps = [
@@ -361,6 +363,14 @@ export default function App() {
           drink water. So now dramatic animals, cinema-level reminders, and
           silly chats are here to lovingly bully her into staying hydrated.
         </p>
+
+        <div className="amrita-card">
+          <img className="amrita-photo" src={amritaImageUrl} alt="Amrita Nair" />
+          <div className="amrita-callout">
+            <strong>Target acquired: Amrita Nair.</strong>
+            <span>Official charge sheet: cute, funny, and criminally under-hydrated.</span>
+          </div>
+        </div>
 
         <div
           className="character-spotlight"

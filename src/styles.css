@@ -66,6 +66,40 @@ button {
   color: #78350f;
 }
 
+.amrita-card {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.amrita-photo {
+  width: 88px;
+  height: 88px;
+  object-fit: cover;
+  border-radius: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 10px 24px rgba(122, 53, 15, 0.16);
+}
+
+.amrita-callout {
+  display: grid;
+  gap: 6px;
+}
+
+.amrita-callout strong {
+  color: #431407;
+  font-size: 1.05rem;
+}
+
+.amrita-callout span {
+  color: #7c2d12;
+  line-height: 1.45;
+}
+
 .character-spotlight {
   margin-top: 20px;
   padding: 16px;
@@ -371,6 +405,11 @@ button {
 
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .amrita-card {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .chat-header {
