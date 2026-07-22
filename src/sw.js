@@ -9,8 +9,8 @@ precacheAndRoute(self.__WB_MANIFEST);
 function getNotificationOptions(payload) {
   return {
     body: payload.body,
-    icon: "/icons/icon-192.svg",
-    badge: "/icons/icon-192.svg",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
     tag: payload.tag,
     data: payload.data,
     actions: [
@@ -47,7 +47,9 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const params = new URLSearchParams();
-  if (event.action === "mark-drank") {
+  const shouldLogDrink = event.action === "mark-drank";
+
+  if (shouldLogDrink) {
     params.set("hydrate", "1");
     params.set("source", "notification");
   }
@@ -57,8 +59,10 @@ self.addEventListener("notificationclick", (event) => {
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (event.action === "mark-drank") {
+      if (clientList.length > 0) {
+        const client = clientList[0];
+
+        if (shouldLogDrink) {
           client.postMessage({
             type: "HYDRATE_FROM_NOTIFICATION",
             source: "notification",
@@ -66,7 +70,6 @@ self.addEventListener("notificationclick", (event) => {
         }
 
         if ("focus" in client) {
-          client.navigate(destination);
           return client.focus();
         }
       }

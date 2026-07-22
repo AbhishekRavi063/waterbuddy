@@ -8,26 +8,26 @@ const visitStorageKey = "water-buddy-visit-count";
 const testIntervalMs = 5 * 60 * 1000;
 const heroMessages = [
   {
-    eyebrow: "Made By Abhishek For Amritha",
+    eyebrow: "Made By Abhishek For Amrita",
     title: "This app is for this girl because she does not drink water.",
     subtitle:
-      "Made by Abhishek for Amritha. Cute girl, low hydration, big problem. So this app is here to remind her properly.",
-    calloutTitle: "Amritha",
+      "Made by Abhishek for Amrita. Cute girl, low hydration, big problem. So this app is here to remind her properly.",
+    calloutTitle: "Amrita",
     calloutText: "Beautiful face. Very suspicious water habits.",
   },
   {
     eyebrow: "Abhishek vs Dehydration",
     title: "Special app for the girl who treats water like an optional side quest.",
     subtitle:
-      "Abhishek made this for Amritha because apparently remembering water is harder than being cute all day.",
-    calloutTitle: "Amritha spotted",
+      "Abhishek made this for Amrita because apparently remembering water is harder than being cute all day.",
+    calloutTitle: "Amrita spotted",
     calloutText: "Looks innocent. Hydration record says otherwise.",
   },
   {
     eyebrow: "Personal Case File",
     title: "This whole app exists because one girl keeps forgetting to drink water.",
     subtitle:
-      "Made by Abhishek for Amritha, whose talents include being adorable and ignoring the water bottle for dramatic effect.",
+      "Made by Abhishek for Amrita, whose talents include being adorable and ignoring the water bottle for dramatic effect.",
     calloutTitle: "Primary suspect",
     calloutText: "Charged with charm, mischief, and chronic under-hydration.",
   },
@@ -35,8 +35,8 @@ const heroMessages = [
     eyebrow: "Emergency Romance Department",
     title: "Pretty girl detected. Water discipline not detected.",
     subtitle:
-      "Abhishek built this for Amritha so someone can lovingly interrupt the nonsense and say: drink water first.",
-    calloutTitle: "Amritha Nair",
+      "Abhishek built this for Amrita so someone can lovingly interrupt the nonsense and say: drink water first.",
+    calloutTitle: "Amrita Nair",
     calloutText: "Very photogenic. Very forgetful with hydration.",
   },
 ];
