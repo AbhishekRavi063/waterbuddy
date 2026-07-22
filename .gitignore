@@ -1,0 +1,9 @@
+node_modules/
+dist/
+dev-dist/
+.expo/
+.npm-cache/
+.DS_Store
+*.log
+coverage/
+.vite/

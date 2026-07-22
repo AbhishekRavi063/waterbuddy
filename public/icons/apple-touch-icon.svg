@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Water Buddy Apple touch icon">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd166" />
+      <stop offset="100%" stop-color="#ff8c42" />
+    </linearGradient>
+  </defs>
+  <rect width="180" height="180" rx="40" fill="url(#bg)" />
+  <circle cx="90" cy="82" r="34" fill="#fff7ed" opacity="0.95" />
+  <path d="M72 112c0 9 8 17 18 17s18-8 18-17v-6H72z" fill="#14b8a6" />
+  <path d="M90 34c17 18 28 37 28 50 0 16-12 29-28 29s-28-13-28-29c0-13 11-32 28-50z" fill="#38bdf8" />
+  <circle cx="76" cy="77" r="4.5" fill="#1f2937" />
+  <circle cx="104" cy="77" r="4.5" fill="#1f2937" />
+  <path d="M77 94c4 6 22 6 26 0" fill="none" stroke="#1f2937" stroke-linecap="round" stroke-width="4.5" />
+</svg>

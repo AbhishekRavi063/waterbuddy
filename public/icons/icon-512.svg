@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Water Buddy icon">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd166" />
+      <stop offset="100%" stop-color="#ff8c42" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="124" fill="url(#bg)" />
+  <circle cx="256" cy="228" r="106" fill="#fff7ed" opacity="0.95" />
+  <path d="M207 335c0 30 22 53 49 53s49-23 49-53v-20H207z" fill="#14b8a6" />
+  <path d="M256 95c51 53 82 108 82 146 0 50-36 88-82 88s-82-38-82-88c0-38 31-93 82-146z" fill="#38bdf8" />
+  <circle cx="214" cy="212" r="13" fill="#1f2937" />
+  <circle cx="298" cy="212" r="13" fill="#1f2937" />
+  <path d="M217 264c15 18 63 18 78 0" fill="none" stroke="#1f2937" stroke-linecap="round" stroke-width="14" />
+</svg>
