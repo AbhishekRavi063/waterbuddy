@@ -1,19 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  buildNotificationPayload,
-  getPrompt,
-  getReply,
-  pickCharacter,
-} from "../data/dialogues";
+import { buildNotificationPayload } from "../data/dialogues";
 
-const actionOptions = [
-  { id: "success", label: "I drank it" },
-  { id: "snooze", label: "2 more mins" },
-  { id: "chaos", label: "Bring chai instead" },
-];
-const amritaImageUrl =
-  "https://radviiokxmrzwzwxxssd.supabase.co/storage/v1/object/sign/static/amritha.jpeg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yMGEzOTI2Mi1lM2YyLTQyMzEtYWI1Ny01M2YwODU5NTc4YWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzdGF0aWMvYW1yaXRoYS5qcGVnIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NDcxMDAxMiwiZXhwIjoxODE2MjQ2MDEyfQ.bfaJVDQ4z_xLMTWnlzjB3Ys4JngeDwOV-KaUGFWyYi0";
-
+const amritaImageUrl = "/icons/amrita.jpg";
 const goals = [4, 6, 8];
 const storageKey = "water-buddy-state";
 const testIntervalMs = 5 * 60 * 1000;
@@ -28,20 +16,7 @@ const hourlyBuckets = [
 const notificationSupport = {
   notifications: typeof window !== "undefined" && "Notification" in window,
   serviceWorker: typeof navigator !== "undefined" && "serviceWorker" in navigator,
-  pushManager: typeof window !== "undefined" && "PushManager" in window,
 };
-
-function createReminder(step) {
-  const character = pickCharacter(step);
-  return {
-    id: `msg-${step}`,
-    speaker: character.name,
-    avatar: character.avatar,
-    accent: character.accent,
-    colors: character.colors,
-    body: getPrompt(step),
-  };
-}
 
 function isToday(timestamp) {
   const value = new Date(timestamp);
@@ -66,16 +41,11 @@ function buildHourlyFrequency(drinkLog) {
 export default function App() {
   const [goalIndex, setGoalIndex] = useState(1);
   const [reminderStep, setReminderStep] = useState(0);
-  const [messages, setMessages] = useState([createReminder(0)]);
   const [drinkLog, setDrinkLog] = useState([]);
   const [notificationPermission, setNotificationPermission] = useState(
     notificationSupport.notifications ? Notification.permission : "unsupported"
   );
-  const [notificationStatus, setNotificationStatus] = useState(
-    notificationSupport.notifications
-      ? "Enable permission to test funny mobile notifications."
-      : "This browser does not support web notifications."
-  );
+  const [notificationStatus, setNotificationStatus] = useState("");
   const [isTestScheduleRunning, setIsTestScheduleRunning] = useState(false);
   const [nextTestAt, setNextTestAt] = useState(null);
 
@@ -85,7 +55,6 @@ export default function App() {
   );
   const goal = goals[goalIndex];
   const progress = Math.min(waterCount / goal, 1);
-  const latestCharacter = useMemo(() => pickCharacter(reminderStep), [reminderStep]);
   const frequencyData = useMemo(() => buildHourlyFrequency(drinkLog), [drinkLog]);
   const maxFrequency = Math.max(...frequencyData.map((item) => item.count), 1);
   const recentDrinks = useMemo(() => drinkLog.slice(-6).reverse(), [drinkLog]);
@@ -101,11 +70,6 @@ export default function App() {
       setGoalIndex(saved.goalIndex ?? 1);
       setReminderStep(saved.reminderStep ?? 0);
       setDrinkLog(saved.drinkLog ?? []);
-      setMessages(
-        saved.messages?.length
-          ? saved.messages
-          : [createReminder(saved.reminderStep ?? 0)]
-      );
     } catch {
       window.localStorage.removeItem(storageKey);
     }
@@ -117,11 +81,10 @@ export default function App() {
       JSON.stringify({
         goalIndex,
         reminderStep,
-        messages,
         drinkLog,
       })
     );
-  }, [drinkLog, goalIndex, messages, reminderStep]);
+  }, [drinkLog, goalIndex, reminderStep]);
 
   const recordDrink = (source) => {
     const entry = {
@@ -129,32 +92,13 @@ export default function App() {
       at: new Date().toISOString(),
       source,
     };
-
     setDrinkLog((current) => [...current, entry]);
     setNotificationStatus(
       source === "notification"
-        ? "Marked as drank from the notification action."
-        : "Hydration logged successfully."
+        ? "Logged from notification."
+        : "Water logged."
     );
   };
-
-  useEffect(() => {
-    if (!notificationSupport.serviceWorker) {
-      return;
-    }
-
-    navigator.serviceWorker.ready
-      .then(() => {
-        setNotificationStatus((current) =>
-          current.includes("test funny mobile notifications")
-            ? "Service worker is ready. You can enable notifications now."
-            : current
-        );
-      })
-      .catch(() => {
-        setNotificationStatus("Service worker is not ready yet.");
-      });
-  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -184,20 +128,18 @@ export default function App() {
     };
   }, []);
 
-  const queueReminder = (step) => {
-    const reminder = createReminder(step);
-    setReminderStep(step);
-    setMessages((current) => [reminder, ...current].slice(0, 6));
-  };
-
   const showFunnyNotification = async (step, suffix = "") => {
+    if (!notificationSupport.serviceWorker) {
+      return;
+    }
+
     const payload = buildNotificationPayload(step);
     const registration = await navigator.serviceWorker.ready;
 
     await registration.showNotification(payload.title, {
       body: `${payload.body}${suffix}`,
-      icon: "/icons/icon-192.svg",
-      badge: "/icons/icon-192.svg",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
       tag: payload.tag,
       data: payload.data,
       actions: [
@@ -205,6 +147,36 @@ export default function App() {
         { action: "open-app", title: "Open app" },
       ],
     });
+  };
+
+  const enableNotifications = async () => {
+    if (!notificationSupport.notifications) {
+      setNotificationStatus("Notifications not supported here.");
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    setNotificationPermission(permission);
+    setNotificationStatus(
+      permission === "granted"
+        ? "Notifications enabled."
+        : "Notification permission denied."
+    );
+  };
+
+  const sendReminder = async () => {
+    const nextStep = reminderStep + 1;
+
+    if (notificationPermission !== "granted") {
+      await enableNotifications();
+    }
+
+    if (Notification.permission === "granted") {
+      await showFunnyNotification(nextStep);
+      setNotificationStatus("Reminder sent.");
+    }
+
+    setReminderStep(nextStep);
   };
 
   useEffect(() => {
@@ -217,10 +189,9 @@ export default function App() {
 
     const runScheduledNotification = async () => {
       const nextStep = reminderStep + 1;
-      await showFunnyNotification(nextStep, " Test mode: 5-minute reminder.");
-      queueReminder(nextStep);
+      await showFunnyNotification(nextStep, " Test mode.");
+      setReminderStep(nextStep);
       setNextTestAt(new Date(Date.now() + testIntervalMs).toLocaleTimeString());
-      setNotificationStatus("Funny test notification delivered on the 5-minute test schedule.");
     };
 
     setNextTestAt(new Date(Date.now() + testIntervalMs).toLocaleTimeString());
@@ -237,78 +208,21 @@ export default function App() {
     };
   }, [isTestScheduleRunning, reminderStep]);
 
-  const triggerReminder = () => {
-    queueReminder(reminderStep + 1);
-  };
-
-  const handleAction = (type) => {
-    if (type === "success") {
-      recordDrink("app");
-    }
-
-    const character = pickCharacter(reminderStep + 1);
-    const reply = {
-      id: `reply-${type}-${Date.now()}`,
-      speaker: character.name,
-      avatar: character.avatar,
-      accent: character.accent,
-      colors: character.colors,
-      body: getReply(type, reminderStep),
-    };
-
-    setMessages((current) => [reply, ...current].slice(0, 6));
-  };
-
-  const enableNotifications = async () => {
-    if (!notificationSupport.notifications) {
-      setNotificationStatus("This browser cannot show notifications.");
-      return;
-    }
-
-    const permission = await Notification.requestPermission();
-    setNotificationPermission(permission);
-
-    if (permission === "granted") {
-      setNotificationStatus(
-        notificationSupport.pushManager
-          ? "Notifications enabled. The funny test alerts can now reach the system notification tray."
-          : "Notifications enabled, but push delivery is limited on this browser."
-      );
-    } else {
-      setNotificationStatus("Notification permission was not granted.");
-    }
-  };
-
-  const sendTestNotification = async () => {
+  const toggleTestSchedule = async () => {
     if (notificationPermission !== "granted") {
-      setNotificationStatus("Enable notifications first, then send a test one.");
-      return;
-    }
-
-    if (!notificationSupport.serviceWorker) {
-      setNotificationStatus("Service worker support is missing in this browser.");
-      return;
-    }
-
-    await showFunnyNotification(reminderStep + 1);
-    setNotificationStatus("Funny test notification sent to the device notification tray.");
-  };
-
-  const toggleTestSchedule = () => {
-    if (notificationPermission !== "granted") {
-      setNotificationStatus("Enable notifications first, then start the 5-minute test schedule.");
-      return;
+      await enableNotifications();
+      if (Notification.permission !== "granted") {
+        return;
+      }
     }
 
     setIsTestScheduleRunning((current) => {
       const next = !current;
       if (!next) {
         setNextTestAt(null);
-        setNotificationStatus("5-minute test schedule stopped.");
+        setNotificationStatus("5-minute test stopped.");
       } else {
-        setNotificationStatus(
-          "5-minute test schedule started. Keep the installed web app open while testing."
-        );
+        setNotificationStatus("5-minute test started.");
       }
       return next;
     });
@@ -317,58 +231,29 @@ export default function App() {
   return (
     <main className="app-shell">
       <section className="hero-card">
-        <p className="eyebrow">Made By Abhishek For Amrita Nair</p>
-        <h1>This is just for Amrita.</h1>
+        <p className="eyebrow">Made By Abhishek For Amritha</p>
+        <h1>This app is for this girl because she does not drink water.</h1>
         <p className="subtitle">
-          She is sweet, funny, and somehow still forgets to drink water. So this
-          app exists to remind her properly.
+          Made by Abhishek for Amritha. Cute girl, low hydration, big problem.
+          So this app is here to remind her properly.
         </p>
 
         <div className="amrita-card">
           <img className="amrita-photo" src={amritaImageUrl} alt="Amrita Nair" />
           <div className="amrita-callout">
-            <strong>Amrita Nair</strong>
-            <span>Certified cutie. Uncertified water drinker.</span>
+            <strong>Amritha</strong>
+            <span>Beautiful face. Very suspicious water habits.</span>
           </div>
         </div>
 
         <div className="hero-actions">
-          <button type="button" className="primary-button" onClick={() => handleAction("success")}>
+          <button type="button" className="primary-button" onClick={() => recordDrink("app")}>
             I drank water
           </button>
-          <button type="button" className="secondary-button" onClick={triggerReminder}>
+          <button type="button" className="secondary-button" onClick={sendReminder}>
             Remind me
           </button>
         </div>
-      </section>
-
-      <section className="panel">
-        <h3>Push Notification Lab</h3>
-        <p>
-          Enable notifications, send a funny test alert, or run a 5-minute test
-          schedule while you are verifying the app.
-        </p>
-        <div className="pill-row">
-          <span className="status-pill">Permission: {notificationPermission}</span>
-          <span className="status-pill">
-            Push support: {notificationSupport.pushManager ? "available" : "limited"}
-          </span>
-        </div>
-        <div className="button-row">
-          <button type="button" className="primary-button" onClick={enableNotifications}>
-            Enable notifications
-          </button>
-          <button type="button" className="secondary-button" onClick={sendTestNotification}>
-            Send funny test notification
-          </button>
-          <button type="button" className="secondary-button" onClick={toggleTestSchedule}>
-            {isTestScheduleRunning ? "Stop 5-minute test mode" : "Start 5-minute test mode"}
-          </button>
-        </div>
-        {nextTestAt ? (
-          <p className="tiny-note">Next 5-minute test notification: {nextTestAt}</p>
-        ) : null}
-        <p className="tiny-note">{notificationStatus}</p>
       </section>
 
       <section className="stats-grid">
@@ -386,9 +271,20 @@ export default function App() {
         </button>
       </section>
 
+      <section className="panel progress-card">
+        <div className="progress-header">
+          <h3>Daily Progress</h3>
+          <strong>{Math.round(progress * 100)}%</strong>
+        </div>
+        <div className="progress-track">
+          <div className="progress-fill" style={{ width: `${progress * 100}%` }} />
+        </div>
+        <p>Tap the goal card to switch between 4, 6, and 8 glasses.</p>
+      </section>
+
       <section className="panel">
         <div className="progress-header">
-          <h3>Hydration Frequency Graph</h3>
+          <h3>Hydration Frequency</h3>
           <strong>{drinkLog.length} total logs</strong>
         </div>
         <div className="graph-card">
@@ -405,9 +301,6 @@ export default function App() {
             </div>
           ))}
         </div>
-        <p className="tiny-note">
-          This graph shows around what time of day she usually drinks water.
-        </p>
         <div className="log-list">
           {recentDrinks.length ? (
             recentDrinks.map((entry) => (
@@ -426,64 +319,24 @@ export default function App() {
               </div>
             ))
           ) : (
-            <p className="tiny-note">
-              No drinks logged yet. Tap `I drank it` or use the notification action.
-            </p>
+            <p className="tiny-note">No drinks logged yet.</p>
           )}
         </div>
       </section>
 
-      <section className="panel progress-card">
-        <div className="progress-header">
-          <h3>Daily Progress</h3>
-          <strong>{Math.round(progress * 100)}%</strong>
-        </div>
-        <div className="progress-track">
-          <div className="progress-fill" style={{ width: `${progress * 100}%` }} />
-        </div>
-        <p>Tap the goal card to switch between 4, 6, and 8 glasses.</p>
-      </section>
-
-      <section className="panel chat-card">
-        <div className="chat-header">
-          <h3>Funny Reminder Chat</h3>
-          <button type="button" className="primary-button" onClick={triggerReminder}>
-            Random reminder
+      <section className="panel">
+        <div className="button-row">
+          <button type="button" className="secondary-button" onClick={enableNotifications}>
+            Enable notifications
+          </button>
+          <button type="button" className="secondary-button" onClick={toggleTestSchedule}>
+            {isTestScheduleRunning ? "Stop 5-minute test" : "Start 5-minute test"}
           </button>
         </div>
-
-        <div className="messages">
-          {messages.map((message) => (
-            <article className="message-row" key={message.id}>
-              <div
-                className="avatar-bubble"
-                style={{ "--avatar-color": message.colors[1] }}
-              >
-                {message.avatar}
-              </div>
-              <div className="message-bubble">
-                <div className="message-topline">
-                  <strong>{message.speaker}</strong>
-                  <span>{message.accent}</span>
-                </div>
-                <p>{message.body}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <div className="action-row">
-          {actionOptions.map((action) => (
-            <button
-              key={action.id}
-              type="button"
-              className="action-button"
-              onClick={() => handleAction(action.id)}
-            >
-              {action.label}
-            </button>
-          ))}
-        </div>
+        {nextTestAt ? (
+          <p className="tiny-note">Next test notification: {nextTestAt}</p>
+        ) : null}
+        {notificationStatus ? <p className="tiny-note">{notificationStatus}</p> : null}
       </section>
     </main>
   );
